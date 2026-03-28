@@ -65,6 +65,9 @@ class DisableInitialization(ReplaceHelper):
             return self.create_model_and_transforms(*args, pretrained=None, **kwargs)
 
         def CLIPTextModel_from_pretrained(pretrained_model_name_or_path, *model_args, **kwargs):
+            # Fix for transformers 4.37+: prevent passing None as repo_id
+            if pretrained_model_name_or_path is None:
+                pretrained_model_name_or_path = 'openai/clip-vit-large-patch14'
             res = self.CLIPTextModel_from_pretrained(None, *model_args, config=pretrained_model_name_or_path, state_dict={}, **kwargs)
             res.name_or_path = pretrained_model_name_or_path
             return res
