@@ -110,8 +110,17 @@ Alternatively, use online services (like Google Colab):
 3. Run `run.bat`.
 > For more details see [Install-and-Run-on-NVidia-GPUs](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Install-and-Run-on-NVidia-GPUs)
 
+### Python compatibility
+
+This fork supports Python 3.10 through 3.13, but it does not use the same dependency set on every interpreter.
+
+- Python 3.10 and 3.11 use the original dependency lock.
+- Python 3.12 uses a newer compatibility lock so `pip` can install wheel-based `tokenizers` and PyTorch builds.
+- Python 3.13 uses a newer compatibility lock again because the older `tokenizers` line does not publish Python 3.13 wheels.
+- `--xformers` on Python 3.13 is less battle-tested than the 3.10/3.11 path; if it fails, run without `--xformers` or override `XFORMERS_PACKAGE`.
+
 ### Automatic Installation on Windows
-1. Install [Python 3.10.6](https://www.python.org/downloads/release/python-3106/) (Newer version of Python does not support torch), checking "Add Python to PATH".
+1. Install Python 3.10, 3.11, 3.12, or 3.13, checking "Add Python to PATH". If you want the most conservative path, use [Python 3.10.6](https://www.python.org/downloads/release/python-3106/).
 2. Install [git](https://git-scm.com/download/win).
 3. Download the stable-diffusion-webui repository, for example by running `git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git`.
 4. Run `webui-user.bat` from Windows Explorer as normal, non-administrator, user.
@@ -128,7 +137,7 @@ sudo zypper install wget git python3 libtcmalloc4 libglvnd
 # Arch-based:
 sudo pacman -S wget git python3
 ```
-If your system is very new, you need to install python3.11 or python3.10:
+If your system is very new, install Python 3.10, 3.11, 3.12, or 3.13:
 ```bash
 # Ubuntu 24.04
 sudo add-apt-repository ppa:deadsnakes/ppa
@@ -157,6 +166,12 @@ git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui
 
 3. Run `webui.sh`.
 4. Check `webui-user.sh` for options.
+
+### Stable Diffusion upstream note
+
+The original `https://github.com/Stability-AI/stablediffusion.git` upstream used by older releases is no longer available for fresh installs. This fork defaults to `https://github.com/w-e-w/stablediffusion.git` instead.
+
+If you need a different mirror, set `STABLE_DIFFUSION_REPO` in `webui-user.bat`, `webui-user.sh`, or your environment before the first launch.
 ### Installation on Apple Silicon
 
 Find the instructions [here](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Installation-on-Apple-Silicon).

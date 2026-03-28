@@ -18,6 +18,9 @@
 # git executable
 #export GIT="git"
 
+# Override the Stable Diffusion upstream used during first-time setup.
+#export STABLE_DIFFUSION_REPO="https://github.com/w-e-w/stablediffusion.git"
+
 # python3 venv without trailing slash (defaults to ${install_dir}/${clone_dir}/venv)
 #venv_dir="venv"
 

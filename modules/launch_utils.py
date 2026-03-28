@@ -38,26 +38,33 @@ def check_python_version():
     micro = sys.version_info.micro
 
     if is_windows:
-        supported_minors = [10]
+        supported_minors = [10, 11, 12, 13]
     else:
-        supported_minors = [7, 8, 9, 10, 11]
+        supported_minors = [7, 8, 9, 10, 11, 12, 13]
 
     if not (major == 3 and minor in supported_minors):
-        errors.print_error_explanation(f"""
+        message = f"""
 INCOMPATIBLE PYTHON VERSION
 
 This program is tested with 3.10.6 Python, but you have {major}.{minor}.{micro}.
 If you encounter an error with "RuntimeError: Couldn't install torch." message,
 or any other error regarding unsuccessful package (library) installation,
-please downgrade (or upgrade) to the latest version of 3.10 Python
+please switch to a supported Python version in the 3.10-3.13 range
 and delete current Python and "venv" folder in WebUI's directory.
 
-You can download 3.10 Python from here: https://www.python.org/downloads/release/python-3106/
+You can download Python 3.10 from here: https://www.python.org/downloads/release/python-3106/
 
 {"Alternatively, use a binary release of WebUI: https://github.com/AUTOMATIC1111/stable-diffusion-webui/releases/tag/v1.0.0-pre" if is_windows else ""}
 
 Use --skip-python-version-check to suppress this warning.
-""")
+"""
+        errors.print_error_explanation(message)
+
+        if major != 3 or minor < 7:
+            raise RuntimeError(
+                f"Unsupported Python version: {major}.{minor}.{micro}. "
+                "Use Python 3.10-3.13, or pass --skip-python-version-check if you know the environment is patched."
+            )
 
 
 @lru_cache()
@@ -348,8 +355,21 @@ def early_access_blackwell_wheels():
 
 
 def prepare_environment():
-    torch_index_url = os.environ.get('TORCH_INDEX_URL', "https://download.pytorch.org/whl/cu128")
-    torch_command = os.environ.get('TORCH_COMMAND', f"pip install torch==2.7.0 torchvision==0.22.0 --extra-index-url {torch_index_url}")
+    py_minor = sys.version_info.minor
+
+    default_torch_index_url = "https://download.pytorch.org/whl/cu128"
+    default_torch_command = f"pip install torch==2.7.0 torchvision==0.22.0 --extra-index-url {default_torch_index_url}"
+    default_requirements_file = "requirements_versions.txt"
+    default_xformers_package = 'xformers==0.0.30'
+
+    if py_minor == 12:
+        default_requirements_file = "requirements_versions_py312.txt"
+    elif py_minor >= 13:
+        default_requirements_file = "requirements_versions_py313.txt"
+        default_xformers_package = 'xformers==0.0.35'
+
+    torch_index_url = os.environ.get('TORCH_INDEX_URL', default_torch_index_url)
+    torch_command = os.environ.get('TORCH_COMMAND', default_torch_command)
     if args.use_ipex:
         if platform.system() == "Windows":
             # The "Nuullll/intel-extension-for-pytorch" wheels were built from IPEX source for Intel Arc GPU: https://github.com/intel/intel-extension-for-pytorch/tree/xpu-main
@@ -370,10 +390,10 @@ def prepare_environment():
             # See https://intel.github.io/intel-extension-for-pytorch/index.html#installation for details.
             torch_index_url = os.environ.get('TORCH_INDEX_URL', "https://pytorch-extension.intel.com/release-whl/stable/xpu/us/")
             torch_command = os.environ.get('TORCH_COMMAND', f"pip install torch==2.0.0a0 intel-extension-for-pytorch==2.0.110+gitba7f6c1 --extra-index-url {torch_index_url}")
-    requirements_file = os.environ.get('REQS_FILE', "requirements_versions.txt")
+    requirements_file = os.environ.get('REQS_FILE', default_requirements_file)
     requirements_file_for_npu = os.environ.get('REQS_FILE_FOR_NPU', "requirements_npu.txt")
 
-    xformers_package = os.environ.get('XFORMERS_PACKAGE', 'xformers==0.0.30')
+    xformers_package = os.environ.get('XFORMERS_PACKAGE', default_xformers_package)
     clip_package = os.environ.get('CLIP_PACKAGE', "https://github.com/openai/CLIP/archive/d50d76daa670286dd6cacf3bcd80b5e4823fc8e1.zip")
     openclip_package = os.environ.get('OPENCLIP_PACKAGE', "https://github.com/mlfoundations/open_clip/archive/bb6e834e9c70d9c27d0dc3ecedeebeaeb1ffad6b.zip")
 
